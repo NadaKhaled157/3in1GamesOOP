@@ -5,13 +5,13 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class GameHandler implements ActionListener {
+public class xoHandler implements ActionListener {
     boolean isXTurn = true;
-    GameGUI GUI;
+    xoGUI GUI;
     Board gameBoard;
     String winner;
 
-    GameHandler(GameGUI GUI,Board gameBoard){
+    xoHandler(xoGUI GUI,Board gameBoard){
         this.GUI=GUI;
         this.gameBoard=gameBoard;
         for (int x = 0; x < 3; x++) {
@@ -54,9 +54,9 @@ public class GameHandler implements ActionListener {
     }
 
     public static void main(String[] args) {
-        GameGUI GUI= new GameGUI();
+        xoGUI GUI= new xoGUI();
         Board gameBoard= new Board();
-        new GameHandler(GUI, gameBoard);
+        new xoHandler(GUI, gameBoard);
 
     }
 }

@@ -1,12 +1,12 @@
 package TicTacToe;
 
-public class Tile {
+public class xoTile {
     boolean hasMark;
     MarkType markType;
     int x;
     int y;
     public void setMark(int x, int y, MarkType markType){this.markType=markType;}
-    public MarkType getMark(Tile tileNumber){return markType;}
+    public MarkType getMark(xoTile tileNumber){return markType;}
     public void setX(int X) {
         this.x = x;
     }

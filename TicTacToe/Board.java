@@ -1,13 +1,13 @@
 package TicTacToe;
 
 public class Board {
-    Tile[][] tiles= new Tile[3][3];
+    xoTile[][] tiles= new xoTile[3][3];
     MarkType winner;
 
     Board(){
         for (int x=0;x<3;x++){
             for (int y=0;y<3;y++) {
-                this.tiles[x][y]= new Tile();
+                this.tiles[x][y]= new xoTile();
             }
         }
     }
@@ -72,10 +72,10 @@ public class Board {
         if ((tiles[0][2].hasMark && tiles[1][1].hasMark && tiles[2][0].hasMark) &&
                 (tiles[0][2].markType.equals(tiles[1][1].markType) && tiles[1][1].markType.equals(tiles[2][0].markType))){
             winner = tiles[0][2].markType;
-        return true;
-    }
+            return true;
+        }
 
-    return false;
+        return false;
     }
 }
 

@@ -3,14 +3,14 @@ package TicTacToe;
 import javax.swing.*;
 import java.awt.*;
 
-public class GameGUI {
+public class xoGUI {
     JFrame mainFrame = new JFrame("Tic Tac Toe");
     JPanel[][] tiles= new JPanel[3][3];
     JButton[][] buttons= new JButton[3][3];
 
 
 
-    GameGUI() {
+    xoGUI() {
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setLayout(null);
         mainFrame.setSize(650,650);
@@ -53,6 +53,6 @@ public class GameGUI {
     }
 
     public static void main (String[]args){
-        new GameGUI();
+        new xoGUI();
     }
 }

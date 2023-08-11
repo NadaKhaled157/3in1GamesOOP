@@ -49,16 +49,33 @@ public class King extends Piece{
         //a position where it would be in check and therefor checkmate-d
         for (int x=0;x<8;x++) {
             for (int y = 0; y < 8; y++) {
-                if (currentBoard.boardTiles[x][y].hasPiece &&
-                        !(currentBoard.boardTiles[x][y].getPiece().pieceColor.equals(this.pieceColor))){
-                    currentBoard.boardTiles[x][y].getPiece().findPossibleMoves(currentBoard);
-                    if (currentBoard.boardTiles[x][y].getPiece() instanceof Pawn pawn) {
+                Tile currentTile=currentBoard.boardTiles[x][y];
+                if (currentTile.hasPiece &&
+                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))){
+                    currentTile.getPiece().findPossibleMoves(currentBoard);
+                    if (currentTile.getPiece() instanceof Pawn pawn) {
                         //remove in front of pawn from possible threatening moves
                         //because pawn cannot eat in front of it
                         pawn.possibleMoves.remove(currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1]);
                         pawn.wouldEndangerKing(currentBoard);
+                    } else if (currentTile.getPiece() instanceof Rook || currentTile.getPiece() instanceof Queen){
+                        Piece rookQueen= currentTile.getPiece();
+                        //UP
+                        for(int j= 1; rookQueen.getY()+j<8;j++){
+                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY()+j];
+                            if (checkedTile.getPiece()==null){
+                                rookQueen.possibleMoves.add(checkedTile);
+                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
+                                if (checkedTile.getPiece() instanceof King)
+                                    rookQueen.possibleMoves.add(checkedTile);
+                                else {
+                                    rookQueen.possibleMoves.add(checkedTile);
+                                    break;
+                                }
+                            }
+                        }
                     }
-                    allPossibleMoves.addAll(currentBoard.boardTiles[x][y].getPiece().possibleMoves);
+                    allPossibleMoves.addAll(currentTile.getPiece().possibleMoves);
 
                     //
                     System.out.println(currentBoard.boardTiles[x][y].getPiece().pieceColor+" "
@@ -70,7 +87,7 @@ public class King extends Piece{
                     //
 
 
-                    for (Tile pieceIllegalMoves : currentBoard.boardTiles[x][y].getPiece().illegalMoves) {
+                    for (Tile pieceIllegalMoves : currentTile.getPiece().illegalMoves) {
                         //If an opponent's piece(1) can be eaten by the king
                         //But that would allow another opponent's piece to move on the same tile
                         //when it previously couldn't because piece(1) was on the tile
@@ -80,7 +97,7 @@ public class King extends Piece{
                             this.illegalMoves.add(pieceIllegalMoves);
                         }
                     }
-                    currentBoard.boardTiles[x][y].getPiece().possibleMoves.clear();
+                    currentTile.getPiece().possibleMoves.clear();
                 }
             }
         }
@@ -151,7 +168,7 @@ public class King extends Piece{
         this.wouldBeInDanger(currentBoard);
         if (this.possibleMoves.isEmpty())
             return this.isCheckmated=true;
-    return this.isCheckmated=false;
+        return this.isCheckmated=false;
     }
 
     public static void main (String[] args) {

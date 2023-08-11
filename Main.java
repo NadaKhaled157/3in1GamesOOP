@@ -16,8 +16,11 @@ public class Main implements ActionListener {
     JButton xoButton = new JButton("Tic Tac Toe");
     JButton loginButton = new JButton("Login");
     JButton signupButton = new JButton("Signup");
-    ImageIcon gameLogo = new ImageIcon("resources/Chessmate Logo.png");
+    ImageIcon gameLogo = new ImageIcon("resources/Game Logo.png");
     JLabel gameLogoLabel= new JLabel();
+    JLabel gameNameLabel=new JLabel("OOP GAMES");
+
+    Font titleFont= new Font("Showcard Gothic",Font.BOLD,35);
 
     Main() {
         setLayoutManager();
@@ -31,7 +34,7 @@ public class Main implements ActionListener {
 
     public void setLayoutManager() {
         launchFrame.setLayout(null);
-        launchFrame.setTitle("Welcome to Three in One!");
+        launchFrame.setTitle("Welcome to OOP Games!");
         launchFrame.getContentPane().setBackground(ChessGUI.whitePlayerColor);
         chessButton.setFocusable(false);
 //        thirdGame.setFocusable(false);
@@ -45,12 +48,14 @@ public class Main implements ActionListener {
         loginButton.setBackground(ChessGUI.blackPlayerColor);
         signupButton.setBackground(ChessGUI.blackPlayerColor);
 
+        gameNameLabel.setForeground(ChessGUI.blackPlayerColor);
         chessButton.setForeground(ChessGUI.whitePlayerColor);
 //        thirdGame.setBackground(Color.DARK_GRAY);
         xoButton.setForeground(ChessGUI.whitePlayerColor);
         loginButton.setForeground(ChessGUI.whitePlayerColor);
         signupButton.setForeground(ChessGUI.whitePlayerColor);
 
+        gameNameLabel.setFont(titleFont);
         chessButton.setFont(ChessGUI.font15);
         xoButton.setFont(ChessGUI.font15);
         loginButton.setFont(ChessGUI.font15);
@@ -63,7 +68,8 @@ public class Main implements ActionListener {
         launchFrame.setSize(500, 500);
         launchFrame.setLocationRelativeTo(null);
         welcomeLabel.setBounds(150, 60, 200, 40);
-        gameLogoLabel.setBounds(65,60,350,182);
+        gameLogoLabel.setBounds(80,10,150,150);
+        gameNameLabel.setBounds(190,40,200,100);
         chessButton.setBounds(165, 200, 150, 30);
         //thirdGame.setBounds(165, 250, 150, 30);
         xoButton.setBounds(165, 300, 150, 30);
@@ -79,7 +85,8 @@ public class Main implements ActionListener {
         launchFrame.add(loginButton);
         launchFrame.add(signupButton);
         launchFrame.add(gameLogoLabel);
-        ImageIcon logo = new ImageIcon("resources/Chess Photos/Game Icon.png");
+        launchFrame.add(gameNameLabel);
+        ImageIcon logo = new ImageIcon("resources/Game Logo.png");
         launchFrame.setIconImage(logo.getImage());
     }
 

@@ -5,8 +5,13 @@ import java.util.ArrayList;
 public class King extends Piece{
 
     ArrayList<Tile> allPossibleMoves= new ArrayList<>(); //possible moves of all other pieces on board
+    boolean isInDanger;
+    Piece threatPiece;
     boolean isInCheck;
     boolean isCheckmated;
+
+    boolean canCastle;
+
 
     King(int x, int y, PieceColor pieceColor) {
         this.x = x;
@@ -44,71 +49,351 @@ public class King extends Piece{
 
     }
 
+    public boolean canCastle(Board currentBoard){
+        if(this.pieceColor.equals(PieceColor.Black) && this.x==4 && this.y==7) {
+            if (!currentBoard.boardTiles[this.x + 1][this.y].hasPiece && !currentBoard.boardTiles[this.x + 2][this.y].hasPiece) {
+                if (this.possibleMoves.contains(currentBoard.boardTiles[this.x + 1][this.y])
+                        && this.possibleMoves.contains(currentBoard.boardTiles[this.x + 2][this.y])) //This has to be added to its possible moves only if it wouldn't put it in danger
+                    return true;
+            }
+        }
+    return false;
+    }
+
     public void wouldBeInDanger(Board currentBoard){
         //This method doesn't allow the king to move in
         //a position where it would be in check and therefor checkmate-d
-        for (int x=0;x<8;x++) {
-            for (int y = 0; y < 8; y++) {
-                Tile currentTile=currentBoard.boardTiles[x][y];
-                if (currentTile.hasPiece &&
-                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))){
-                    currentTile.getPiece().findPossibleMoves(currentBoard);
-                    if (currentTile.getPiece() instanceof Pawn pawn) {
-                        //remove in front of pawn from possible threatening moves
-                        //because pawn cannot eat in front of it
-                        pawn.possibleMoves.remove(currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1]);
-                        pawn.wouldEndangerKing(currentBoard);
-                    } else if (currentTile.getPiece() instanceof Rook || currentTile.getPiece() instanceof Queen){
-                        Piece rookQueen= currentTile.getPiece();
-                        //UP
-                        for(int j= 1; rookQueen.getY()+j<8;j++){
-                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY()+j];
-                            if (checkedTile.getPiece()==null){
-                                rookQueen.possibleMoves.add(checkedTile);
-                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
-                                if (checkedTile.getPiece() instanceof King)
-                                    rookQueen.possibleMoves.add(checkedTile);
-                                else {
-                                    rookQueen.possibleMoves.add(checkedTile);
-                                    break;
-                                }
-                            }
-                        }
+//        System.out.println("---------------ALL PIECES POSSIBLE MOVES----------------");
+
+//        if(this.pieceColor.equals(PieceColor.White)) {
+//            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);
+//        } else {
+//            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);
+//        }
+        for(int i=0;i<8;i++) {
+            //Y-AXIS
+            Tile currentTile = currentBoard.boardTiles[this.x][i];
+            if (currentTile.hasPiece &&
+                    !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                if (currentTile.getPiece() instanceof Rook || currentTile.getPiece() instanceof Queen) {
+                    Piece rookQueen = currentTile.getPiece();
+                    //ABOVE ROOK
+                    for (int k = 1; rookQueen.getY() + k < 8; k++) {
+                        Tile checkedTile = currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY() + k];
+                        if (testIfPieceThreatensKing(rookQueen, checkedTile)) break;
                     }
-                    allPossibleMoves.addAll(currentTile.getPiece().possibleMoves);
-
-                    //
-                    System.out.println(currentBoard.boardTiles[x][y].getPiece().pieceColor+" "
-                            +currentBoard.boardTiles[x][y].getPiece().pieceType+" X"+currentBoard.boardTiles[x][y].getPiece().getX()+" Y"+
-                            currentBoard.boardTiles[x][y].getPiece().getY());
-                    System.out.println(currentBoard.boardTiles[x][y].getPiece().possibleMoves.size());
-                    for (int i=0;i<currentBoard.boardTiles[x][y].getPiece().possibleMoves.size();i++)
-                        System.out.println("X"+currentBoard.boardTiles[x][y].getPiece().possibleMoves.get(i).x+" Y"+currentBoard.boardTiles[x][y].getPiece().possibleMoves.get(i).y);
-                    //
-
-
-                    for (Tile pieceIllegalMoves : currentTile.getPiece().illegalMoves) {
-                        //If an opponent's piece(1) can be eaten by the king
-                        //But that would allow another opponent's piece to move on the same tile
-                        //when it previously couldn't because piece(1) was on the tile
-                        //This would put the king in checkmate, so it's not allowed.
-                        if (this.possibleMoves.contains(pieceIllegalMoves)) {
-                            this.possibleMoves.remove(pieceIllegalMoves);
-                            this.illegalMoves.add(pieceIllegalMoves);
-                        }
+                    //BELOW ROOK
+                    for (int k = 1; rookQueen.getY() - k > 0; k++) {
+                        Tile checkedTile = currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY() - k];
+                        if (testIfPieceThreatensKing(rookQueen, checkedTile)) break;
                     }
+                    System.out.println("Threat Piece Possible Moves: " + rookQueen.possibleMoves.size());
+                    for (int k = 0; k < rookQueen.possibleMoves.size(); k++) {
+                        System.out.print("X" + rookQueen.possibleMoves.get(k).x + " ");
+                        System.out.println("Y" + rookQueen.possibleMoves.get(k).y);
+
+                    }
+                    currentBoard.allPossibleMoves.addAll(rookQueen.possibleMoves);
                     currentTile.getPiece().possibleMoves.clear();
                 }
             }
+            //X-AXIS
+            currentTile = currentBoard.boardTiles[i][this.y];
+            if (currentTile.hasPiece &&
+                    !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                if (currentTile.getPiece() instanceof Rook || currentTile.getPiece() instanceof Queen) {
+                    Piece rookQueen = currentTile.getPiece();
+                    //RIGHT OF ROOK
+                    for (int k = 1; rookQueen.getY() + k < 8; k++) {
+                        Tile checkedTile = currentBoard.boardTiles[rookQueen.getX() + k][rookQueen.getY()];
+                        if (testIfPieceThreatensKing(rookQueen, checkedTile)) break;
+                    }
+                    //LEFT OF ROOK
+                    for (int k = 1; rookQueen.getY() - k > 0; k++) {
+                        Tile checkedTile = currentBoard.boardTiles[rookQueen.getX() - k][rookQueen.getY()];
+                        if (testIfPieceThreatensKing(rookQueen, checkedTile)) break;
+                    }
+                    System.out.println("Threat Piece Possible Moves: " + rookQueen.possibleMoves.size());
+                    for (int k = 0; k < rookQueen.possibleMoves.size(); k++) {
+                        System.out.print("X" + rookQueen.possibleMoves.get(k).x + " ");
+                        System.out.println("Y" + rookQueen.possibleMoves.get(k).y);
+
+                    }
+                    currentBoard.allPossibleMoves.addAll(rookQueen.possibleMoves);
+                    currentTile.getPiece().possibleMoves.clear();
+                }
+            }
+            //UP-RIGHT LOWER-LEFT DIAGONAL
+            if (this.x + i < 8 && this.y + i < 8) {
+                //If there's a bishop up-right of king, check it's lower-left moves
+                currentTile = currentBoard.boardTiles[this.x + i][this.y + i];
+                if (currentTile.hasPiece &&
+                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                    if (currentTile.getPiece() instanceof Bishop || currentTile.getPiece() instanceof Queen) {
+                        Piece bishopQueen = currentTile.getPiece();
+                        int k=1;
+                        while(bishopQueen.getX()-k>0 && bishopQueen.getY()-k>0){
+                            Tile checkedTile= currentBoard.boardTiles[bishopQueen.getX()-k][bishopQueen.getY()-k];
+                            testIfPieceThreatensKing(bishopQueen,checkedTile);
+                            k++;
+                        }
+                    }
+                }
+            }
+            if (this.x - i >0 && this.y - i >0) {
+                //If there's a bishop lower-left of king, check it's upper-right moves
+                currentTile = currentBoard.boardTiles[this.x - i][this.y - i];
+                if (currentTile.hasPiece &&
+                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                    if (currentTile.getPiece() instanceof Bishop || currentTile.getPiece() instanceof Queen) {
+                        Piece bishopQueen = currentTile.getPiece();
+                        int k=1;
+                        while(bishopQueen.getX()+k<8 && bishopQueen.getY()+k<8){
+                            Tile checkedTile= currentBoard.boardTiles[bishopQueen.getX()+k][bishopQueen.getY()+k];
+                            testIfPieceThreatensKing(bishopQueen,checkedTile);
+                            k++;
+                        }
+                    }
+                }
+            }
+            //UP-LEFT LOWER-RIGHT DIAGONAL
+            if (this.x - i >0 && this.y + i < 8) {
+                //If there's a bishop upper-left of king, check it's lower-right moves
+                currentTile = currentBoard.boardTiles[this.x - i][this.y + i];
+                if (currentTile.hasPiece &&
+                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                    if (currentTile.getPiece() instanceof Bishop || currentTile.getPiece() instanceof Queen) {
+                        Piece bishopQueen = currentTile.getPiece();
+                        int k=1;
+                        while(bishopQueen.getX()+k<8 && bishopQueen.getY()-k>0){
+                            Tile checkedTile= currentBoard.boardTiles[bishopQueen.getX()+k][bishopQueen.getY()-k];
+                            testIfPieceThreatensKing(bishopQueen,checkedTile);
+                            k++;
+                        }
+                    }
+                }
+            }
+            if (this.x +i < 8 && this.y - i >0) {
+                //If there's a bishop lower-left of king, check it's upper-right moves
+                currentTile = currentBoard.boardTiles[this.x + i][this.y - i];
+                if (currentTile.hasPiece &&
+                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+                    if (currentTile.getPiece() instanceof Bishop || currentTile.getPiece() instanceof Queen) {
+                        Piece bishopQueen = currentTile.getPiece();
+                        int k=1;
+                        while(bishopQueen.getX()-k>0 && bishopQueen.getY()+k<8){
+                            Tile checkedTile= currentBoard.boardTiles[bishopQueen.getX()-k][bishopQueen.getY()+k];
+                            testIfPieceThreatensKing(bishopQueen,checkedTile);
+                            k++;
+                        }
+                    }
+                }
+            }
+
         }
+//        for (int x=0;x<8;x++) {
+//            for (int y = 0; y < 8; y++) {
+//                Tile currentTile=currentBoard.boardTiles[x][y];
+//                if (currentTile.hasPiece &&
+//                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))){
+//                    //currentTile.getPiece().findPossibleMoves(currentBoard);
+//                    //PAWN DANGER
+//                    if (currentTile.getPiece() instanceof Pawn pawn) {
+//                        //remove in front of pawn from possible threatening moves
+//                        //because pawn cannot eat in front of it
+//                        pawn.findPossibleMoves(currentBoard);
+//                        pawn.possibleMoves.remove(currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1]);
+//                        pawn.wouldEndangerKing(currentBoard);
+//                    //ROOK OR QUEEN DANGER
+//                    }
+//                    else if (currentTile.getPiece() instanceof Rook || currentTile.getPiece() instanceof Queen){
+//                        Piece rookQueen= currentTile.getPiece();
+//                        //UP
+//                        for(int j= 1; rookQueen.getY()+j<8;j++){
+//                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY()+j];
+//                            if (checkedTile.getPiece()==null){
+//                                rookQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=rookQueen;
+////                                    System.out.println("isInDanger: "+ isInDanger);
+////                                    System.out.println("threat piece: "+ threatPiece.pieceType);
+//                                    break;
+//                                }
+//                            } else {
+//                                break;
+//                            }
+//                        }
+//                        //DOWN
+//                        for(int j= 1; rookQueen.getY()-j>0;j++){
+//                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()][rookQueen.getY()-j];
+//                            if (checkedTile.getPiece()==null){
+//                                rookQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=rookQueen;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        //RIGHT
+//                        for(int i= 1; rookQueen.getX()+i<8;i++){
+//                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()+i][rookQueen.getY()];
+//                            if (checkedTile.getPiece()==null){
+//                                rookQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=rookQueen;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        //LEFT
+//                        for(int i= 1; rookQueen.getX()-i>0;i++){
+//                            Tile checkedTile= currentBoard.boardTiles[rookQueen.getX()-i][rookQueen.getY()];
+//                            if (checkedTile.getPiece()==null){
+//                                rookQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(rookQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    rookQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=rookQueen;
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                        //BISHOP AND QUEEN DANGER
+//                    } else if (currentTile.getPiece() instanceof Bishop || currentTile.getPiece() instanceof Queen){
+//                        Piece bishopQueen= currentTile.getPiece();
+//                        //UP RIGHT
+//                        int i= bishopQueen.getX()+1;
+//                        int j= bishopQueen.getY()+1;
+//                        while (i<8 && j<8){
+//                            Tile checkedTile= currentBoard.boardTiles[i][j];
+//                            if (checkedTile.getPiece()==null){
+//                                bishopQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(bishopQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=bishopQueen;
+//                                    break;
+//                                }
+//                            }
+//                            i++;
+//                            j++;
+//                        }
+//                        //UP LEFT
+//                        i= bishopQueen.getX()-1;
+//                        j= bishopQueen.getY()+1;
+//                        while (i>0 && j<8){
+//                            Tile checkedTile= currentBoard.boardTiles[i][j];
+//                            if (checkedTile.getPiece()==null){
+//                                bishopQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(bishopQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=bishopQueen;
+//                                    break;
+//                                }
+//                            }
+//                            i--;
+//                            j++;
+//                        }
+//                        //DOWN RIGHT
+//                        i= bishopQueen.getX()+1;
+//                        j= bishopQueen.getY()-1;
+//                        while (i<8 && j>0){
+//                            Tile checkedTile= currentBoard.boardTiles[i][j];
+//                            if (checkedTile.getPiece()==null){
+//                                bishopQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(bishopQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=bishopQueen;
+//                                    break;
+//                                }
+//                            }
+//                            i++;
+//                            j--;
+//                        }
+//                        //DOWN LEFT
+//                        i= bishopQueen.getX()-1;
+//                        j= bishopQueen.getY()-1;
+//                        while (i>0 && j>0){
+//                            Tile checkedTile= currentBoard.boardTiles[i][j];
+//                            if (checkedTile.getPiece()==null){
+//                                bishopQueen.possibleMoves.add(checkedTile);
+//                            } else if(!checkedTile.getPiece().pieceColor.equals(bishopQueen.pieceColor)) {
+//                                if (checkedTile.getPiece() instanceof King)
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                else {
+//                                    bishopQueen.possibleMoves.add(checkedTile);
+//                                    isInDanger=true;
+//                                    threatPiece=bishopQueen;
+//                                    break;
+//                                }
+//                            }
+//                            i--;
+//                            j--;
+//                        }
+//                    }
+////                    else if (currentTile.getPiece() instanceof Knight){
+////                        Piece knight= currentTile.getPiece();
+////                        int i= knight.getX();
+////                        int j= knight.getY();
+////                        int[] X = {i-1,i-2,i-2,i-1,i+1,i+2,i+2,i+1};
+////                        int[] Y = {j-2,j-1,j+1,j+2,j+2,j+1,j-1,j-2};
+////                    }
+//                    currentBoard.allPossibleMoves.addAll(currentTile.getPiece().possibleMoves);
+//
+//                    for (Tile pieceIllegalMoves : currentTile.getPiece().illegalMoves) {
+//                        //If an opponent's piece(1) can be eaten by the king
+//                        //But that would allow another opponent's piece to move on the same tile
+//                        //when it previously couldn't because piece(1) was on the tile
+//                        //This would put the king in checkmate, so it's not allowed.
+//                        if (this.possibleMoves.contains(pieceIllegalMoves)) {
+//                            this.possibleMoves.remove(pieceIllegalMoves);
+//                            this.illegalMoves.add(pieceIllegalMoves);
+//                        }
+//                    }
+//                    currentTile.getPiece().possibleMoves.clear();
+//                }
+//            }
+//        }
+//        System.out.println("-----------------------------------------------------");
 //        System.out.println("ALL: ");
 //        for (int i=0;i<allPossibleMoves.size();i++)
 //            System.out.println("X"+allPossibleMoves.get(i).x+" Y"+allPossibleMoves.get(i).y);
+        System.out.printf("----------------%s KING'S INFO-----------------", this.pieceColor.toString().toUpperCase());
+        System.out.println();
         System.out.println("KING'S POSSIBLE BEFORE: ");
         for (int i=0;i<this.possibleMoves.size();i++)
             System.out.println("X"+this.possibleMoves.get(i).x+" Y"+this.possibleMoves.get(i).y);
 
-        for (Tile allPossibleMove : allPossibleMoves) {
+        for (Tile allPossibleMove : currentBoard.allPossibleMoves) {
             if(this.possibleMoves.contains(allPossibleMove)) {
                 this.possibleMoves.remove(allPossibleMove);
                 this.illegalMoves.add(allPossibleMove);
@@ -120,53 +405,90 @@ public class King extends Piece{
         for (int i=0;i<this.possibleMoves.size();i++)
             System.out.println("X"+this.possibleMoves.get(i).x+" Y"+this.possibleMoves.get(i).y);
 
-        allPossibleMoves.clear();
+        System.out.println("---------------------------------------------------");
+
+        currentBoard.allPossibleMoves.clear();
+    }
+
+    public boolean testIfPieceThreatensKing(Piece threatPiece, Tile checkedTile) {
+        if (checkedTile.getPiece() == null) {
+            threatPiece.possibleMoves.add(checkedTile);
+        } else if (!checkedTile.getPiece().pieceColor.equals(threatPiece.pieceColor)) {
+            if (checkedTile.getPiece() instanceof King)
+                threatPiece.possibleMoves.add(checkedTile);
+            else {
+                threatPiece.possibleMoves.add(checkedTile);
+                isInDanger = true;
+                this.threatPiece = threatPiece;
+                //
+                System.out.println("isInDanger: "+ isInDanger);
+                System.out.println("threat piece: "+ threatPiece.pieceType);
+                System.out.print("X"+threatPiece.getX());
+                System.out.println("Y"+threatPiece.getY());
+                //
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isInCheck(Board currentBoard) {
         Tile kingTile = currentBoard.boardTiles[this.x][this.y];
         System.out.println("King X"+this.x+" Y"+this.y);
-        for (int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                Tile currentTile = currentBoard.boardTiles[x][y];
-                if (currentTile.hasPiece &&
-                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
-                    currentTile.getPiece().findPossibleMoves(currentBoard);
-                    if (currentTile.getPiece() instanceof Pawn pawn) {
-                        pawn.possibleMoves.remove(currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1]);
-                    }
-                    allPossibleMoves.addAll(currentTile.getPiece().possibleMoves);
+//        System.out.println("----------------ALL PIECES POSSIBLE MOVES---------------");
+//        this.findPossibleMoves(currentBoard);
+//        this.wouldBeInDanger(currentBoard);
 
-                    //
-                    System.out.println(currentTile.getPiece().pieceColor + " "
-                            + currentTile.getPiece().pieceType + " X" + currentTile.getPiece().getX() + " Y" +
-                            currentTile.getPiece().getY());
-                    System.out.println(currentTile.getPiece().possibleMoves.size());
-                    for (int i = 0; i < currentTile.getPiece().possibleMoves.size(); i++)
-                        System.out.println("X" + currentTile.getPiece().possibleMoves.get(i).x + " Y" + currentTile.getPiece().possibleMoves.get(i).y);
-                    //
-
-                    currentTile.getPiece().possibleMoves.clear();
-                }
-            }
+        if(this.pieceColor.equals(PieceColor.White)) {
+            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);
+        } else {
+            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);
         }
 
+//        for (int x = 0; x < 8; x++) {
+//            for (int y = 0; y < 8; y++) {
+//                Tile currentTile = currentBoard.boardTiles[x][y];
+//                if (currentTile.hasPiece &&
+//                        !(currentTile.getPiece().pieceColor.equals(this.pieceColor))) {
+//                    //currentTile.getPiece().findPossibleMoves(currentBoard);
+////                    if (currentTile.getPiece() instanceof Pawn pawn) {
+////                        pawn.possibleMoves.remove(currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1]);
+////                    }
+//                    //allPossibleMoves.addAll(currentTile.getPiece().possibleMoves);
+//
+//
+////                    //
+////                    System.out.println(currentTile.getPiece().pieceColor + " "
+////                            + currentTile.getPiece().pieceType + " X" + currentTile.getPiece().getX() + " Y" +
+////                            currentTile.getPiece().getY());
+////                    System.out.println(currentTile.getPiece().possibleMoves.size());
+////                    for (int i = 0; i < currentTile.getPiece().possibleMoves.size(); i++)
+////                        System.out.println("X" + currentTile.getPiece().possibleMoves.get(i).x + " Y" + currentTile.getPiece().possibleMoves.get(i).y);
+////                    //
+//
+//
+//                    currentTile.getPiece().possibleMoves.clear();
+//                }
+//            }
+//        }
+//        System.out.println("---------------------------------------------------------");
+
 //                    for (Tile allPossibleMove : allPossibleMoves) {
-        if (allPossibleMoves.contains(kingTile))
+        if (currentBoard.allPossibleMoves.contains(kingTile))
             isInCheck = true;
         else
             isInCheck = false;
 //                        else this.possibleMoves.remove(allPossibleMove);
 //                    }
-        allPossibleMoves.clear();
-        this.possibleMoves.clear();
+        currentBoard.allPossibleMoves.clear();
+        //this.possibleMoves.clear();
         return isInCheck;
     }
 
     public boolean isCheckmated (Board currentBoard){
         this.findPossibleMoves(currentBoard);
         this.wouldBeInDanger(currentBoard);
-        if (this.possibleMoves.isEmpty())
+        if (this.isInCheck && this.possibleMoves.isEmpty())
             return this.isCheckmated=true;
         return this.isCheckmated=false;
     }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class King extends Piece{
 
-    ArrayList<Tile> allPossibleMoves= new ArrayList<>(); //possible moves of all other pieces on board
+    //ArrayList<Tile> allPossibleMoves= new ArrayList<>(); //possible moves of all other pieces on board
     boolean isInDanger;
     Piece threatPiece;
     boolean isInCheck;
@@ -82,15 +82,38 @@ public class King extends Piece{
             canLongCastle = false;
         }
     }
-    public void wouldBeInDanger(Board currentBoard){
+    public void wouldBeInDanger(Board currentBoard) {
         //This method doesn't allow the king to move in
         //a position where it would be in check and therefor checkmate-d
 //        System.out.println("---------------ALL PIECES POSSIBLE MOVES----------------");
 
-        if(this.pieceColor.equals(PieceColor.White)) {
+        if (this.pieceColor.equals(PieceColor.White)) {
             currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);
         } else {
             currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);
+        }
+
+        for (int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                Tile currentTile = currentBoard.boardTiles[x][y];
+                //PAWN DANGER
+                if (currentTile.getPiece()!=null && !currentTile.getPiece().pieceColor.equals(this.pieceColor)) {
+                    if (currentTile.getPiece() instanceof Pawn pawn) {
+                        //remove in front of pawn from possible threatening moves
+                        //because pawn cannot eat in front of it
+//                    pawn.findPossibleMoves(currentBoard);
+                        pawn.wouldEndangerKing(currentBoard);
+                        Tile removedTile;
+                        if (pawn.pieceColor.equals(PieceColor.White)) {
+                            removedTile = currentBoard.boardTiles[pawn.getX()][pawn.getY() + 1];
+                        } else {
+                            removedTile = currentBoard.boardTiles[pawn.getX()][pawn.getY() - 1];
+                        }
+                        System.out.println("removed X" + removedTile.x + " removed Y" + removedTile.y);
+                        currentBoard.allPossibleMoves.remove(removedTile);
+                    }
+                }
+            }
         }
         for(int i=0;i<8;i++) {
             //Y-AXIS
@@ -211,7 +234,6 @@ public class King extends Piece{
                     }
                 }
             }
-
         }
 //        for (int x=0;x<8;x++) {
 //            for (int y = 0; y < 8; y++) {
@@ -407,13 +429,13 @@ public class King extends Piece{
 //        }
 //        System.out.println("-----------------------------------------------------");
 //        System.out.println("ALL: ");
-//        for (int i=0;i<allPossibleMoves.size();i++)
-//            System.out.println("X"+allPossibleMoves.get(i).x+" Y"+allPossibleMoves.get(i).y);
+//        for (int i=0;i<currentBoard.allPossibleMoves.size();i++)
+//            System.out.println("X"+currentBoard.allPossibleMoves.get(i).x+" Y"+currentBoard.allPossibleMoves.get(i).y);
+
         System.out.printf("----------------%s KING'S INFO-----------------", this.pieceColor.toString().toUpperCase());
         System.out.println();
         System.out.println("KING'S POSSIBLE BEFORE: ");
-        for (int i=0;i<this.possibleMoves.size();i++)
-            System.out.println("X"+this.possibleMoves.get(i).x+" Y"+this.possibleMoves.get(i).y);
+        for (Tile move : this.possibleMoves) System.out.println("X" + move.x + " Y" + move.y);
 
         for (Tile allPossibleMove : currentBoard.allPossibleMoves) {
             if(this.possibleMoves.contains(allPossibleMove)) {
@@ -424,8 +446,7 @@ public class King extends Piece{
 
 //        System.out.println(this.possibleMoves);
         System.out.println("KING'S POSSIBLE AFTER: ");
-        for (int i=0;i<this.possibleMoves.size();i++)
-            System.out.println("X"+this.possibleMoves.get(i).x+" Y"+this.possibleMoves.get(i).y);
+        for (Tile possibleMove : this.possibleMoves) System.out.println("X" + possibleMove.x + " Y" + possibleMove.y);
 
         System.out.println("---------------------------------------------------");
 
@@ -442,15 +463,15 @@ public class King extends Piece{
                 threatPiece.possibleMoves.add(checkedTile);
                 isInDanger = true;
                 this.threatPiece = threatPiece;
-                //
-                System.out.println("isInDanger: "+ isInDanger);
-                System.out.println("threat piece: "+ threatPiece.pieceType);
-                System.out.print("X"+threatPiece.getX());
-                System.out.println("Y"+threatPiece.getY());
-                //
                 return true;
             }
         }
+        //
+        System.out.println("isInDanger: "+ isInDanger);
+        System.out.println("threat piece: "+ threatPiece.pieceType);
+        System.out.print("X"+threatPiece.getX());
+        System.out.println("Y"+threatPiece.getY());
+        //
         return false;
     }
 

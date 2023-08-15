@@ -10,6 +10,11 @@ public class ChessHandler implements ActionListener {
     Piece selectedPiece;
     Piece movedPiece;
     Piece eatenPiece;
+    Piece castlingKing;
+    Piece castlingRook;
+    boolean shortCastle;
+    boolean longCastle;
+    boolean castlingComplete;
     Player whitePlayer= new Player(true,PieceColor.White);
     Player blackPlayer= new Player(false, PieceColor.Black);
 
@@ -46,12 +51,29 @@ public class ChessHandler implements ActionListener {
                                     if (selectedPiece instanceof King) {
                                         if (!((King) selectedPiece).isInCheck)
                                             chessGUI.deselectButton(selectedPiece);
-                                    } else
+                                    }
+                                    else if(selectedPiece==castlingRook){
+                                        System.out.println("CASTLING COMPLETE");
+                                        int m=0;
+                                        int n=0;
+                                        if(shortCastle) {m= castlingKing.getX()+2; n=castlingRook.getX()-2;}
+                                        if(longCastle) {m= castlingKing.getX()-2; n=castlingRook.getX()+3;}
+                                        setAndRemovePiece(castlingKing,m,castlingKing.getY());
+                                        chessGUI.setAndRemoveImage(castlingKing,null,previousX,previousY);
+                                        setAndRemovePiece(castlingRook,n,castlingRook.getY());
+                                        chessGUI.setAndRemoveImage(castlingRook,null,previousX,previousY);
+                                        castlingComplete=true;
+                                        castlingKing=null;
+                                        castlingRook=null;
+                                    }
+                                    else
                                 chessGUI.deselectButton(selectedPiece);
                             } else {
                                 //selectedPiece.possibleMoves.clear();
+
                                 selectedPiece.findPossibleMoves(chessboard);
-                                chessGUI.disableButtons(selectedPiece);
+//                                chessGUI.disableButtons(selectedPiece);
+
 //                                if(blackPlayer.isTurn && chessboard.blackKing.threatPiece!=null && !(selectedPiece instanceof King)){
 //                                    System.out.print("THREAT PIECE: "+chessboard.blackKing.threatPiece.pieceType+" ");
 //                                    System.out.print("X"+chessboard.blackKing.threatPiece.getX());
@@ -67,21 +89,39 @@ public class ChessHandler implements ActionListener {
                                 if (selectedPiece instanceof King) {
                                     ((King) selectedPiece).wouldBeInDanger(chessboard);
                                     chessGUI.disableButtons(selectedPiece);
-//                                    if(((King) selectedPiece).canCastle(chessboard)) {
-//                                        if (chessboard.boardTiles[selectedPiece.getX() + 3][selectedPiece.getY()].getPiece() instanceof Rook rook)
-//                                            if (rook.pieceColor.equals(selectedPiece.pieceColor))
-//                                                System.out.println("CASTLING ALLOWED");
-//                                    }
+                                    ((King) selectedPiece).canCastle(chessboard);
+                                    if(((King) selectedPiece).canShortCastle) {
+                                        System.out.println("SHORT CASTLING ALLOWED");
+                                        shortCastle=true;
+                                        castlingKing= selectedPiece;
+                                        castlingRook=chessboard.boardTiles[selectedPiece.getX() + 3][selectedPiece.getY()].getPiece();
+                                        selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX() + 3][selectedPiece.getY()]);
+//                                        chessboard.boardTiles[selectedPiece.getX() + 3][selectedPiece.getY()].hasPiece=false;
+                                    }
+                                    if(((King) selectedPiece).canLongCastle) {
+                                        System.out.println("LONG CASTLING ALLOWED");
+                                        longCastle=true;
+                                        castlingKing= selectedPiece;
+                                        castlingRook=chessboard.boardTiles[selectedPiece.getX() -4][selectedPiece.getY()].getPiece();
+                                        selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX() -4][selectedPiece.getY()]);
+//                                        chessboard.boardTiles[selectedPiece.getX() - 4][selectedPiece.getY()].hasPiece=false;
+                                    }
                                 }
-                                if (selectedPiece instanceof Pawn){
-                                    if(((Pawn) selectedPiece).canPerformEnPassant(chessboard)){
-                                        Piece threatenedPawn=((Pawn) selectedPiece).threatenedPawn;
-                                        if(((Pawn) threatenedPawn).isFirstMove){
-                                            selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX() - 1][selectedPiece.getY() + 1]);
-                                            System.out.println("En Passant Available");
+
+                                if (selectedPiece instanceof Pawn) {
+                                    if (((Pawn) selectedPiece).canPerformEnPassant(chessboard)) {
+                                        for (int i = 0;i <((Pawn) selectedPiece).threatenedPawn.length;i++){
+                                            Pawn threatenedPawn = ((Pawn) selectedPiece).threatenedPawn[i];
+                                            if (threatenedPawn!=null && threatenedPawn.isFirstMove) {
+                                                selectedPiece.possibleMoves.add(((Pawn) selectedPiece).enPassantTile[i]);
+                                                System.out.println("En Passant Available");
+                                            }
                                         }
                                     }
                                 }
+
+                                chessGUI.disableButtons(selectedPiece);
+
                                 System.out.println("--------------SELECTED PIECE INFO----------------");
                                 System.out.println(chessboard.boardTiles[x][y].getPiece().pieceType+" X"+chessboard.boardTiles[x][y].getPiece().getX()+" Y"+
                                         chessboard.boardTiles[x][y].getPiece().getY());
@@ -126,10 +166,15 @@ public class ChessHandler implements ActionListener {
                                 setAndRemovePiece(movedPiece, x, y);
                                 chessGUI.setAndRemoveImage(movedPiece, eatenPiece, previousX, previousY);
                             }
-                        } else {
+//                            if (selectedPiece instanceof King && chessboard.boardTiles[x][y].getPiece() instanceof Rook rook){
+//                                chessGUI.runCastlingGUI(selectedPiece, rook, ((King) selectedPiece).canShortCastle, ((King) selectedPiece).canLongCastle);
+//                                System.out.println("CASTLING SUCCESSFUL");
+//                            }
+                        } else if(!castlingComplete) {
                             setAndRemovePiece(movedPiece, x, y);
                             chessGUI.setAndRemoveImage(movedPiece, null, previousX, previousY);
                         }
+                        castlingComplete=false;
                         //Moving to an empty tile
                         System.out.println(movedPiece.pieceType);
 
@@ -148,7 +193,7 @@ public class ChessHandler implements ActionListener {
                                 public void actionPerformed(ActionEvent e) {
                                     Bishop bishopPiece = new Bishop(movedPiece.x, movedPiece.y, movedPiece.pieceColor);
                                     handlePromotion(movedPiece, bishopPiece);
-                                    System.out.println("BISHOP TEST");
+                                    System.out.println("BISHOP PROMOTION");
                                     chessGUI.promotionFrame.dispose();
                                 }
                             };
@@ -157,7 +202,7 @@ public class ChessHandler implements ActionListener {
                                 public void actionPerformed(ActionEvent e) {
                                     Rook rookPiece = new Rook(movedPiece.x, movedPiece.y, movedPiece.pieceColor);
                                     handlePromotion(movedPiece, rookPiece);
-                                    System.out.println("ROOK TEST");
+                                    System.out.println("ROOK PROMOTION");
                                     chessGUI.promotionFrame.dispose();
                                 }
                             };
@@ -167,7 +212,7 @@ public class ChessHandler implements ActionListener {
                                 public void actionPerformed(ActionEvent e) {
                                     Knight knightPiece = new Knight(movedPiece.x, movedPiece.y, movedPiece.pieceColor);
                                     handlePromotion(movedPiece, knightPiece);
-                                    System.out.println("KNIGHT TEST");
+                                    System.out.println("KNIGHT PROMOTION");
                                     chessGUI.promotionFrame.dispose();
                                 }
                             };
@@ -176,7 +221,7 @@ public class ChessHandler implements ActionListener {
                                 public void actionPerformed(ActionEvent e) {
                                     Queen queenPiece = new Queen(movedPiece.x, movedPiece.y, movedPiece.pieceColor);
                                     handlePromotion(movedPiece, queenPiece);
-                                    System.out.println("QUEEN TEST");
+                                    System.out.println("QUEEN PROMOTION");
                                     chessGUI.promotionFrame.dispose();
                                 }
                             };
@@ -185,7 +230,6 @@ public class ChessHandler implements ActionListener {
                             chessGUI.knightButton.addActionListener(knightPromotion);
                             chessGUI.queenButton.addActionListener(queenPromotion);
 
-                            System.out.println("PROMOTION");
                         }
                             if ((movedPiece.pieceColor.equals(PieceColor.White) && previousY==1) ||
                                     (movedPiece.pieceColor.equals(PieceColor.Black) && previousY==6))
@@ -193,20 +237,18 @@ public class ChessHandler implements ActionListener {
                             else
                                 ((Pawn) movedPiece).isFirstMove=false;
 
-                            if (chessboard.boardTiles[movedPiece.getX()][movedPiece.getY()]==((Pawn)selectedPiece).enPassantTile){
-                                System.out.println("EN PASSANT SUCCESSFUL");
-
-                                chessboard.boardTiles[((Pawn) selectedPiece).threatenedPawn.getX()][((Pawn) selectedPiece).threatenedPawn.getY()].setPiece(null);
-                                chessboard.boardTiles[((Pawn) selectedPiece).threatenedPawn.getX()][((Pawn) selectedPiece).threatenedPawn.getY()].hasPiece=false;
-                                System.out.println("PreviousX"+previousX);
-                                System.out.println("PreviousY"+previousY);
-                                chessGUI.setAndRemoveImage(null,((Pawn) selectedPiece).threatenedPawn,previousX,previousY);
-                                chessGUI.buttons[((Pawn) selectedPiece).threatenedPawn.getX()][((Pawn) selectedPiece).threatenedPawn.getY()].setIcon(null);
-//                                ((Pawn) movedPiece).capturedPieceTile.setPiece(null);
-//                                ((Pawn) movedPiece).capturedPieceTile.hasPiece=false;
+                            for(int i=0;i<((Pawn) selectedPiece).threatenedPawn.length;i++) {
+                                if (chessboard.boardTiles[movedPiece.getX()][movedPiece.getY()] == ((Pawn) selectedPiece).enPassantTile[i]) {
+                                    handleEnPassant(((Pawn) selectedPiece).threatenedPawn[i]);
+                                }
+                                if (chessboard.boardTiles[movedPiece.getX()][movedPiece.getY()] == ((Pawn) selectedPiece).enPassantTileTwo) {
+                                    handleEnPassant(((Pawn) selectedPiece).threatenedPawnTwo);
+                                }
                             }
-
                     }
+                        if(movedPiece instanceof King){
+                            ((King) movedPiece).isFirstMove = false;
+                        }
 //                                chessboard.whiteKing.isInCheck(chessboard);
 //                                chessboard.blackKing.isInCheck(chessboard);
 //                        chessboard.whiteKing.isInCheck=false;
@@ -232,11 +274,9 @@ public class ChessHandler implements ActionListener {
 
                             if(chessboard.whiteKing.isCheckmated(chessboard)){
                                 chessGUI.runGameOverGUI(PieceColor.White);
-                                //JOptionPane.showMessageDialog(null, "BLACK WINS");
                             }
                             if (chessboard.blackKing.isCheckmated(chessboard)){
                                 chessGUI.runGameOverGUI(PieceColor.Black);
-//                                JOptionPane.showMessageDialog(null, "WHITE WINS");
                             }
                         }
 //                        else if ((chessboard.whiteKing.isInCheck(chessboard)&& blackPlayer.isTurn)){
@@ -262,6 +302,17 @@ public class ChessHandler implements ActionListener {
         }
     }
 
+    public void handleEnPassant(Pawn threatenedPawn) {
+        chessboard.boardTiles[threatenedPawn.getX()][threatenedPawn.getY()].setPiece(null);
+        chessboard.boardTiles[threatenedPawn.getX()][threatenedPawn.getY()].hasPiece = false;
+        System.out.println("PreviousX" + previousX);
+        System.out.println("PreviousY" + previousY);
+        chessGUI.setAndRemoveImage(null, threatenedPawn, previousX, previousY);
+        chessGUI.buttons[threatenedPawn.getX()][threatenedPawn.getY()].setIcon(null);
+        System.out.println("EN PASSANT SUCCESSFUL");
+    }
+
+
     public boolean isSourceSelected (boolean isTurn, PieceColor playerColor, PieceColor selectedPieceColor){
         return isTurn && playerColor.toString().equals(selectedPieceColor.toString());
     }
@@ -281,7 +332,6 @@ public class ChessHandler implements ActionListener {
         previousY=movedPiece.y;
         chessboard.boardTiles[previousX][previousY].setPiece(null);
         chessboard.boardTiles[previousX][previousY].hasPiece=false;
-        chessGUI.buttons[movedPiece.x][movedPiece.y].setText("");
 
         //adding piece to new tile
         chessboard.boardTiles[x][y].setPiece(movedPiece);
@@ -294,13 +344,38 @@ public class ChessHandler implements ActionListener {
         int newY= movedPiece.y;
         //this.chessGUI.chessboard.boardTiles[newX][newY].setPiece(null);
         this.chessGUI.chessboard.boardTiles[newX][newY].setPiece(promotedPiece);
-        String promotedPieceLabel= promotedPiece.pieceColor +"\n"+promotedPiece.pieceType.toString();
         String filename= "resources/Photos/Chess Pieces/"+promotedPiece.pieceColor.toString()+" "+promotedPiece.pieceType.toString()+".png";
         System.out.println(filename);
-        ImageIcon test=new ImageIcon(filename);
-        this.chessGUI.buttons[newX][newY].setIcon(test);
-        this.chessGUI.buttons[newX][newY].setText(null);
-        //this.chessGUI.buttons[newX][newY].setText("<html>" + promotedPieceLabel.replaceAll("\\n", "<br>") + "</html>");
+        ImageIcon icon=new ImageIcon(filename);
+        this.chessGUI.buttons[newX][newY].setIcon(icon);
+    }
+
+    public void handleCastling(Piece king, Piece rook, boolean shortCastle, boolean longCastle){
+        System.out.print("king X"+king.getX()+" Y"+king.getY());
+        System.out.print("rook X"+rook.getX()+" Y"+rook.getY());
+        this.chessboard.boardTiles[king.getX()][king.getY()].setPiece(null);
+        this.chessboard.boardTiles[king.getX()][king.getY()].hasPiece=false;
+        this.chessboard.boardTiles[rook.getX()][rook.getY()].setPiece(null);
+        this.chessboard.boardTiles[rook.getX()][rook.getY()].hasPiece=false;
+
+        if (shortCastle && rook.getX()==7){
+            this.chessboard.boardTiles[6][7].setPiece(king);
+            this.chessboard.boardTiles[6][7].hasPiece=true;
+            king.setX(6);
+
+            this.chessboard.boardTiles[5][7].setPiece(rook);
+            this.chessboard.boardTiles[5][7].hasPiece=true;
+            rook.setX(5);
+        }
+        if(longCastle && rook.getX()==0){
+            this.chessboard.boardTiles[2][7].setPiece(king);
+            this.chessboard.boardTiles[2][king.getY()].hasPiece=true;
+            king.setX(2);
+
+            this.chessboard.boardTiles[3][rook.getY()].setPiece(rook);
+            this.chessboard.boardTiles[3][rook.getY()].hasPiece=true;
+            rook.setX(3);
+        }
     }
 
     //This method is used to prevent a piece protecting the king from moving

@@ -10,7 +10,9 @@ public class King extends Piece{
     boolean isInCheck;
     boolean isCheckmated;
 
-    boolean canCastle;
+    boolean isFirstMove=true; //Used in castling
+    boolean canShortCastle;
+    boolean canLongCastle;
 
 
     King(int x, int y, PieceColor pieceColor) {
@@ -49,27 +51,47 @@ public class King extends Piece{
 
     }
 
-    public boolean canCastle(Board currentBoard){
-        if(this.pieceColor.equals(PieceColor.Black) && this.x==4 && this.y==7) {
-            if (!currentBoard.boardTiles[this.x + 1][this.y].hasPiece && !currentBoard.boardTiles[this.x + 2][this.y].hasPiece) {
-                if (this.possibleMoves.contains(currentBoard.boardTiles[this.x + 1][this.y])
-                        && this.possibleMoves.contains(currentBoard.boardTiles[this.x + 2][this.y])) //This has to be added to its possible moves only if it wouldn't put it in danger
-                    return true;
+    public void canCastle(Board currentBoard) {
+        if ((this.pieceColor.equals(PieceColor.Black) && this.isFirstMove) || (this.pieceColor.equals(PieceColor.White) && this.isFirstMove)) {
+            if (this.pieceColor.equals(PieceColor.Black)) {currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);}
+            if (this.pieceColor.equals(PieceColor.White)) {currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);}
+            //Short Castling
+            if (currentBoard.boardTiles[this.x + 3][this.y].hasPiece &&
+                    currentBoard.boardTiles[this.x + 3][this.y].getPiece() instanceof Rook && currentBoard.boardTiles[this.x + 3][this.y].getPiece().pieceColor.equals(this.pieceColor)) { //1. King and rook haven't moved
+                if (!currentBoard.boardTiles[this.x + 1][this.y].hasPiece && !currentBoard.boardTiles[this.x + 2][this.y].hasPiece) {//2. Tiles between king and rook are empty
+                    if (!currentBoard.allPossibleMoves.contains(currentBoard.boardTiles[this.x + 2][this.y]) &&
+                            this.possibleMoves.contains(currentBoard.boardTiles[this.x + 1][this.y])) //3. Tiles between king and rook would not put king in check
+                        if (!this.isInCheck) //4. King is not in check
+                            canShortCastle = true;
+                }
             }
+            //Long Castling
+            if (currentBoard.boardTiles[this.x - 4][this.y].hasPiece &&
+                    currentBoard.boardTiles[this.x - 4][this.y].getPiece() instanceof Rook && currentBoard.boardTiles[this.x - 4][this.y].getPiece().pieceColor.equals(this.pieceColor)) { //1. King and rook haven't moved
+                if (!currentBoard.boardTiles[this.x - 1][this.y].hasPiece && !currentBoard.boardTiles[this.x - 2][this.y].hasPiece &&
+                        !currentBoard.boardTiles[this.x - 3][this.y].hasPiece) {//2. Tiles between king and rook are empty
+                    if (!currentBoard.allPossibleMoves.contains(currentBoard.boardTiles[this.x - 2][this.y]) &&
+                            !currentBoard.allPossibleMoves.contains(currentBoard.boardTiles[this.x - 3][this.y]) &&
+                    this.possibleMoves.contains(currentBoard.boardTiles[this.x - 1][this.y])) //3. Tiles between king and rook would not put king in check
+                        if (!this.isInCheck) //4. King is not in check
+                            canLongCastle = true;
+                }
+            }
+        } else {
+            canShortCastle = false;
+            canLongCastle = false;
         }
-    return false;
     }
-
     public void wouldBeInDanger(Board currentBoard){
         //This method doesn't allow the king to move in
         //a position where it would be in check and therefor checkmate-d
 //        System.out.println("---------------ALL PIECES POSSIBLE MOVES----------------");
 
-//        if(this.pieceColor.equals(PieceColor.White)) {
-//            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);
-//        } else {
-//            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);
-//        }
+        if(this.pieceColor.equals(PieceColor.White)) {
+            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.Black);
+        } else {
+            currentBoard.findAllPossibleMovesOfOpponent(PieceColor.White);
+        }
         for(int i=0;i<8;i++) {
             //Y-AXIS
             Tile currentTile = currentBoard.boardTiles[this.x][i];

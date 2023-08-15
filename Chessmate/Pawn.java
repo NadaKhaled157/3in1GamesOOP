@@ -5,8 +5,10 @@ import java.util.ArrayList;
 public class Pawn extends Piece {
 
     boolean isFirstMove; //used in en passant
-    ArrayList<Piece> threatenedPawn=new ArrayList<>(); //threatened by enPassant
-    ArrayList<Tile> enPassantTile= new ArrayList<>(); //tile available as possible move when en passant is allowed
+    Pawn threatenedPawnOne;
+    Pawn threatenedPawnTwo; //threatened by enPassant
+    Tile enPassantTileOne;
+    Tile enPassantTileTwo; //tile available as possible move when en passant is allowed
 
     Pawn(int x, int y, PieceColor pieceColor) {
         this.x = x;
@@ -80,28 +82,29 @@ public class Pawn extends Piece {
     }
 
     public boolean canPerformEnPassant(Board currentBoard) {
+        boolean canPerformEnPassant=false;
         //White Pawns
             if (this.pieceColor.equals(PieceColor.White) && this.y == 4) {
                 if (this.x != 0) {
+                    System.out.println("En passant condition one");
                     if (currentBoard.boardTiles[this.x - 1][this.y].getPiece() != null)
                         if (currentBoard.boardTiles[this.x - 1][this.y].getPiece() instanceof Pawn &&
                                 currentBoard.boardTiles[this.x - 1][this.y].getPiece().pieceColor.equals(PieceColor.Black)) {
-                            threatenedPawn.add(currentBoard.boardTiles[this.x - 1][this.y].getPiece());
-                            enPassantTile.add(currentBoard.boardTiles[this.x - 1][this.y+1]);
-                        return true;
+                            threatenedPawnOne = (Pawn) currentBoard.boardTiles[this.x - 1][this.y].getPiece();
+                            enPassantTileOne = currentBoard.boardTiles[this.x - 1][this.y+1];
+                        canPerformEnPassant= true;
                         }
                 }
                 if (this.x != 7) {
+                    System.out.println("En passant condition two");
                     if (currentBoard.boardTiles[this.x + 1][this.y].getPiece() != null)
                         if (currentBoard.boardTiles[this.x + 1][this.y].getPiece() instanceof Pawn &&
                                 currentBoard.boardTiles[this.x + 1][this.y].getPiece().pieceColor.equals(PieceColor.Black)) {
-                            threatenedPawn.add(currentBoard.boardTiles[this.x + 1][this.y].getPiece());
-                            enPassantTile.add(currentBoard.boardTiles[this.x + 1][this.y+1]);
-                            return true;
+                            threatenedPawnTwo = (Pawn) currentBoard.boardTiles[this.x + 1][this.y].getPiece();
+                            enPassantTileTwo = currentBoard.boardTiles[this.x + 1][this.y+1];
+                            canPerformEnPassant= true;
                         }
                 }
-                System.out.println("ENPASSANT SIZE: "+enPassantTile.size());
-                System.out.println("THREAT SIZE: "+ threatenedPawn.size());
             }
         //Black Pawns
         if (this.pieceColor.equals(PieceColor.Black) && this.y == 3) {
@@ -109,22 +112,22 @@ public class Pawn extends Piece {
                 if (currentBoard.boardTiles[this.x - 1][this.y].getPiece() != null)
                     if (currentBoard.boardTiles[this.x - 1][this.y].getPiece() instanceof Pawn &&
                             currentBoard.boardTiles[this.x - 1][this.y].getPiece().pieceColor.equals(PieceColor.White)) {
-                        threatenedPawn.add(currentBoard.boardTiles[this.x - 1][this.y].getPiece());
-                        enPassantTile.add(currentBoard.boardTiles[this.x - 1][this.y-1]);
-                        return true;
+                        threatenedPawnOne = (Pawn) currentBoard.boardTiles[this.x - 1][this.y].getPiece();
+                        enPassantTileOne = currentBoard.boardTiles[this.x - 1][this.y-1];
+                        canPerformEnPassant= true;
                     }
             }
             if (this.x !=7) {
                 if (currentBoard.boardTiles[this.x + 1][this.y].getPiece() != null)
                     if (currentBoard.boardTiles[this.x + 1][this.y].getPiece() instanceof Pawn &&
                             currentBoard.boardTiles[this.x + 1][this.y].getPiece().pieceColor.equals(PieceColor.White)) {
-                        threatenedPawn.add(currentBoard.boardTiles[this.x + 1][this.y].getPiece());
-                        enPassantTile.add(currentBoard.boardTiles[this.x + 1][this.y-1]);
-                        return true;
+                        threatenedPawnTwo = (Pawn) currentBoard.boardTiles[this.x + 1][this.y].getPiece();
+                        enPassantTileTwo = currentBoard.boardTiles[this.x + 1][this.y-1];
+                        canPerformEnPassant= true;
                     }
             }
         }
-    return false;}
+    return canPerformEnPassant;}
     public boolean canPromote(Board currentBoard){
         //White Pawn promotion
         if(currentBoard.boardTiles[this.x][this.y].getPiece().pieceColor.equals(PieceColor.White) && this.y==7){

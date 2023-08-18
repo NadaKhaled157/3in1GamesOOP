@@ -3,6 +3,7 @@ package Chessmate;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class ChessHandler implements ActionListener {
     ChessGUI chessGUI;
@@ -74,18 +75,27 @@ public class ChessHandler implements ActionListener {
                                 selectedPiece.findPossibleMoves(chessboard);
 //                                chessGUI.disableButtons(selectedPiece);
 
-//                                if(blackPlayer.isTurn && chessboard.blackKing.threatPiece!=null && !(selectedPiece instanceof King)){
+                                if((blackPlayer.isTurn && !chessboard.blackKing.threatPieces.isEmpty())
+                                || (whitePlayer.isTurn && !chessboard.whiteKing.threatPieces.isEmpty())){
 //                                    System.out.print("THREAT PIECE: "+chessboard.blackKing.threatPiece.pieceType+" ");
 //                                    System.out.print("X"+chessboard.blackKing.threatPiece.getX());
 //                                    System.out.println("Y"+chessboard.blackKing.threatPiece.getY());
-//                                    Tile threatPieceTile = chessboard.boardTiles[chessboard.blackKing.threatPiece.getX()][chessboard.blackKing.threatPiece.getY()];
+                                    System.out.println("ENTERED DO NOT ENDANGER CONDITION");
+                                    selectedPiece.possibleMoves=doNotEndangerKing(selectedPiece, whitePlayer.isTurn);
+//                                    int listSize;
+//                                    if(blackPlayer.isTurn){listSize=chessboard.blackKing.threatPieces.size();}
+//                                    else{listSize=chessboard.whiteKing.threatPieces.size();}
+//                                        for(int i=0;i<listSize;i++){
+//                                            Tile threatPieceTile = chessboard.boardTiles[chessboard.blackKing.threatPieces.get(i).getX()][chessboard.blackKing.threatPieces.get(i).getY()];
+////                                            doNotEndangerKing(threatPieceTile, chessboard.blackKing.threatPiece);
+//                                        }
+//                                    else{}
 //                                    if (chessboard.blackKing.isInDanger) {
-//                                        doNotEndangerKing(threatPieceTile, chessboard.blackKing.threatPiece);
 //                                    }
-////                                     else {
-////                                        chessGUI.disableButtons(selectedPiece);
-////                                    }
-//                                }
+//                                     else {
+//                                        chessGUI.disableButtons(selectedPiece);
+//                                    }
+                                }
                                 if (selectedPiece instanceof King) {
                                     ((King) selectedPiece).wouldBeInDanger(chessboard);
                                     chessGUI.disableButtons(selectedPiece);
@@ -122,9 +132,9 @@ public class ChessHandler implements ActionListener {
 
                                 chessGUI.disableButtons(selectedPiece);
 
-                                System.out.println("--------------SELECTED PIECE INFO----------------");
-                                System.out.println(chessboard.boardTiles[x][y].getPiece().pieceType+" X"+chessboard.boardTiles[x][y].getPiece().getX()+" Y"+
-                                        chessboard.boardTiles[x][y].getPiece().getY());
+//                                System.out.println("--------------SELECTED PIECE INFO----------------");
+//                                System.out.println(chessboard.boardTiles[x][y].getPiece().pieceType+" X"+chessboard.boardTiles[x][y].getPiece().getX()+" Y"+
+//                                        chessboard.boardTiles[x][y].getPiece().getY());
 
                                 // printing possible moves
                                 System.out.println("Possible Moves: "+selectedPiece.possibleMoves.size());
@@ -344,105 +354,433 @@ public class ChessHandler implements ActionListener {
         int newY= movedPiece.y;
         //this.chessGUI.chessboard.boardTiles[newX][newY].setPiece(null);
         this.chessGUI.chessboard.boardTiles[newX][newY].setPiece(promotedPiece);
-        String filename= "resources/Photos/Chess Pieces/"+promotedPiece.pieceColor.toString()+" "+promotedPiece.pieceType.toString()+".png";
+        String filename= "resources/Photos/Chess Photos/Chess Pieces/"+promotedPiece.pieceColor.toString()+" "+promotedPiece.pieceType.toString()+".png";
         System.out.println(filename);
         ImageIcon icon=new ImageIcon(filename);
         this.chessGUI.buttons[newX][newY].setIcon(icon);
     }
 
-    public void handleCastling(Piece king, Piece rook, boolean shortCastle, boolean longCastle){
-        System.out.print("king X"+king.getX()+" Y"+king.getY());
-        System.out.print("rook X"+rook.getX()+" Y"+rook.getY());
-        this.chessboard.boardTiles[king.getX()][king.getY()].setPiece(null);
-        this.chessboard.boardTiles[king.getX()][king.getY()].hasPiece=false;
-        this.chessboard.boardTiles[rook.getX()][rook.getY()].setPiece(null);
-        this.chessboard.boardTiles[rook.getX()][rook.getY()].hasPiece=false;
-
-        if (shortCastle && rook.getX()==7){
-            this.chessboard.boardTiles[6][7].setPiece(king);
-            this.chessboard.boardTiles[6][7].hasPiece=true;
-            king.setX(6);
-
-            this.chessboard.boardTiles[5][7].setPiece(rook);
-            this.chessboard.boardTiles[5][7].hasPiece=true;
-            rook.setX(5);
-        }
-        if(longCastle && rook.getX()==0){
-            this.chessboard.boardTiles[2][7].setPiece(king);
-            this.chessboard.boardTiles[2][king.getY()].hasPiece=true;
-            king.setX(2);
-
-            this.chessboard.boardTiles[3][rook.getY()].setPiece(rook);
-            this.chessboard.boardTiles[3][rook.getY()].hasPiece=true;
-            rook.setX(3);
-        }
-    }
+//    public void handleCastling(Piece king, Piece rook, boolean shortCastle, boolean longCastle){
+//        System.out.print("king X"+king.getX()+" Y"+king.getY());
+//        System.out.print("rook X"+rook.getX()+" Y"+rook.getY());
+//        this.chessboard.boardTiles[king.getX()][king.getY()].setPiece(null);
+//        this.chessboard.boardTiles[king.getX()][king.getY()].hasPiece=false;
+//        this.chessboard.boardTiles[rook.getX()][rook.getY()].setPiece(null);
+//        this.chessboard.boardTiles[rook.getX()][rook.getY()].hasPiece=false;
+//
+//        if (shortCastle && rook.getX()==7){
+//            this.chessboard.boardTiles[6][7].setPiece(king);
+//            this.chessboard.boardTiles[6][7].hasPiece=true;
+//            king.setX(6);
+//
+//            this.chessboard.boardTiles[5][7].setPiece(rook);
+//            this.chessboard.boardTiles[5][7].hasPiece=true;
+//            rook.setX(5);
+//        }
+//        if(longCastle && rook.getX()==0){
+//            this.chessboard.boardTiles[2][7].setPiece(king);
+//            this.chessboard.boardTiles[2][king.getY()].hasPiece=true;
+//            king.setX(2);
+//
+//            this.chessboard.boardTiles[3][rook.getY()].setPiece(rook);
+//            this.chessboard.boardTiles[3][rook.getY()].hasPiece=true;
+//            rook.setX(3);
+//        }
+//    }
 
     //This method is used to prevent a piece protecting the king from moving
     //and possibly putting the king in danger of being checkmated.
     //The piece is only allowed to move if it can eat the threatening piece
-    public void doNotEndangerKing(Tile tile, Piece threatPiece){
-        if(!selectedPiece.possibleMoves.contains(tile) &&
-                threatPiece.possibleMoves.contains(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY()])){
-            chessGUI.enableButtons();
-            selectedPiece.possibleMoves.clear();
-        } else if(selectedPiece instanceof Rook || selectedPiece instanceof Queen){
-            //selectedPiece.possibleMoves.clear();
-            //UP
-            for(int i=1;selectedPiece.getY()+i<=threatPiece.getY();i++){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY()+i]);
+    public ArrayList<Tile> doNotEndangerKing(Piece selectedPiece, boolean isWhiteTurn){
+        Board tempBoard= new Board();
+        for(int x=0;x<7;x++){
+            for (int y=0;y<7;y++){
+                if (chessboard.boardTiles[x][y].hasPiece){
+                    tempBoard.boardTiles[x][y].setPiece(chessboard.boardTiles[x][y].getPiece());
+                    tempBoard.boardTiles[x][y].hasPiece=true;
+                } else {
+                    tempBoard.boardTiles[x][y].setPiece(null);
+                    tempBoard.boardTiles[x][y].hasPiece=false;
+                }
             }
-            //DOWN
-            for(int i=1;selectedPiece.getY()-i>=threatPiece.getY();i++){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY()-i]);
-            }
-            //RIGHT
-            for(int i=1;selectedPiece.getX()+i<=threatPiece.getX();i++){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()+i][selectedPiece.getY()]);
-            }
-            //LEFT
-            for(int i=1;selectedPiece.getX()-i>=threatPiece.getX();i++){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()-i][selectedPiece.getY()]);
-            }
-            chessGUI.disableButtons(selectedPiece);
-        } else if(selectedPiece instanceof Bishop || selectedPiece instanceof Queen){
-            //UP RIGHT
-            int i=selectedPiece.getX()+1;
-            int j=selectedPiece.getY()+1;
-            while(i<=threatPiece.getX() && j<=threatPiece.getY()){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
-                i++;
-                j++;
-            }
-            //UP LEFT
-            i=selectedPiece.getX()-1;
-            j=selectedPiece.getY()+1;
-            while(i>=threatPiece.getX() && j<=threatPiece.getY()){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
-                i--;
-                j++;
-            }
-            //DOWN RIGHT
-            i=selectedPiece.getX()+1;
-            j=selectedPiece.getY()-1;
-            while(i<=threatPiece.getX() && j>=threatPiece.getY()){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
-                i++;
-                j--;
-            }
-            //DOWN LEFT
-            i=selectedPiece.getX()-1;
-            j=selectedPiece.getY()-1;
-            while(i>=threatPiece.getX() && j>=threatPiece.getY()){
-                selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
-                i--;
-                j--;
-            }
-            chessGUI.disableButtons(selectedPiece);
         }
-        else if (selectedPiece instanceof Knight) {
-            selectedPiece.possibleMoves.clear();
-            selectedPiece.possibleMoves.add(tile);
+        Piece tempSelectedPiece=null;
+        PieceType tempPieceType=selectedPiece.pieceType;
+        PieceColor tempPieceColor=selectedPiece.pieceColor;
+        int constantX= selectedPiece.getX();
+        int constantY= selectedPiece.getY();
+        switch (tempPieceType) {
+            case Pawn -> tempSelectedPiece = new Pawn(constantX, constantY, tempPieceColor);
+            case Rook -> tempSelectedPiece = new Rook(constantX, constantY, tempPieceColor);
+            case Knight -> tempSelectedPiece = new Knight(constantX, constantY, tempPieceColor);
+            case Bishop -> tempSelectedPiece = new Bishop(constantX, constantY, tempPieceColor);
+            case Queen -> tempSelectedPiece = new Queen(constantX, constantY, tempPieceColor);
+            case King -> {
+                tempSelectedPiece = new King(constantX, constantY, tempPieceColor);
+                if (tempPieceColor.equals(PieceColor.White)) {
+                    tempBoard.whiteKing = (King) tempSelectedPiece;
+                } else {
+                    tempBoard.blackKing = (King) tempSelectedPiece;
+                }
+            }
         }
+        for(int k=0;k<selectedPiece.possibleMoves.size();k++){
+            tempSelectedPiece.possibleMoves.add(tempBoard.boardTiles[selectedPiece.possibleMoves.get(k).getX()][selectedPiece.possibleMoves.get(k).getY()]);
+        }
+//        tempSelectedPiece.possibleMoves=selectedPiece.possibleMoves;
+        System.out.println("Temp Possible Moves: "+tempSelectedPiece.possibleMoves.size());
+        for (int k = 0; k < tempSelectedPiece.possibleMoves.size(); k++) {
+            System.out.print("X" + tempSelectedPiece.possibleMoves.get(k).x + " ");
+            System.out.println("Y" + tempSelectedPiece.possibleMoves.get(k).y);
+        }
+        for (int i=0;i<tempSelectedPiece.possibleMoves.size();i++){
+            int testX=tempSelectedPiece.possibleMoves.get(i).getX();
+            int testY=tempSelectedPiece.possibleMoves.get(i).getY();
+//            int constantX= tempSelectedPiece.getX();
+//            int constantY= tempSelectedPiece.getY();
+
+            tempBoard.boardTiles[constantX][constantY].setPiece(null);
+            tempBoard.boardTiles[constantX][constantY].hasPiece=false;
+            tempBoard.boardTiles[testX][testY].setPiece(tempSelectedPiece);
+            tempBoard.boardTiles[testX][testY].hasPiece=true;
+            tempSelectedPiece.setX(testX);
+            tempSelectedPiece.setY(testY);
+//            System.out.println("test X "+testX+" Y"+testY);
+//            System.out.println("selected Y"+selectedPiece.getX()+" Y"+ selectedPiece.getY());
+
+
+            if(isWhiteTurn) {
+                System.out.println("TESTING X"+testX+" Y"+testY);
+                if (tempBoard.whiteKing.isInCheck(tempBoard)) {
+                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+
+                    System.out.println("REMOVED X"+testX+" Y"+testY);
+                    System.out.println("New Possible Moves: "+selectedPiece.possibleMoves.size());
+                    for (int k = 0; k < selectedPiece.possibleMoves.size(); k++) {
+                        System.out.print("X" + selectedPiece.possibleMoves.get(k).x + " ");
+                        System.out.println("Y" + selectedPiece.possibleMoves.get(k).y);
+                    }
+                }
+            } else {
+                System.out.println("TESTING X"+testX+" Y"+testY);
+                if (tempBoard.blackKing.isInCheck(tempBoard)) {
+                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+                    selectedPiece.illegalMoves.add(chessboard.boardTiles[testX][testY]);
+                    System.out.println("REMOVED X"+testX+" Y"+testY);
+
+                    System.out.println("New Possible Moves: "+selectedPiece.possibleMoves.size());
+                    for (int k = 0; k < selectedPiece.possibleMoves.size(); k++) {
+                        System.out.print("X" + selectedPiece.possibleMoves.get(k).x + " ");
+                        System.out.println("Y" + selectedPiece.possibleMoves.get(k).y);
+                    }
+
+                }
+            }
+
+            tempBoard.boardTiles[constantX][constantY].setPiece(tempSelectedPiece);
+            tempBoard.boardTiles[constantX][constantY].hasPiece=true;
+            tempBoard.boardTiles[testX][testY].setPiece(null);
+            tempBoard.boardTiles[testX][testY].hasPiece=false;
+            tempSelectedPiece.setX(constantX);
+            tempSelectedPiece.setY(constantY);
+            tempBoard.blackKing.isInCheck=false;
+            tempBoard.whiteKing.isInCheck=false;
+        }
+
+        System.out.println("Final Possible Moves: "+selectedPiece.possibleMoves.size());
+        for (int k = 0; k < selectedPiece.possibleMoves.size(); k++) {
+            System.out.print("X" + selectedPiece.possibleMoves.get(k).x + " ");
+            System.out.println("Y" + selectedPiece.possibleMoves.get(k).y);
+        }
+
+    return selectedPiece.possibleMoves;
     }
+//    public ArrayList<Tile> doNotEndangerKing(Board chessboard ,Piece selectedPiece,boolean isWhiteTurn) {
+//        Board tempBoard= new Board();
+//        Piece tempSelectedPiece;
+//        int constantX;
+//        int constantY;
+////        for(int x=0; x<8;x++) {
+////            for (int y = 0; y < 8; y++) {
+////                if (chessboard.boardTiles[x][y].getPiece() != null) {
+//////                    Piece copyPiece=null;
+//////                    PieceType copyPieceType = chessboard.boardTiles[x][y].getPiece().pieceType;
+//////                    PieceColor copyPieceColor = chessboard.boardTiles[x][y].getPiece().pieceColor;
+//////                    switch (copyPieceType) {
+//////                        case Pawn -> copyPiece = new Pawn(x, y, copyPieceColor);
+//////                        case Rook -> copyPiece = new Rook(x, y, copyPieceColor);
+//////                        case Knight -> copyPiece = new Knight(x, y, copyPieceColor);
+//////                        case Bishop -> copyPiece = new Bishop(x, y, copyPieceColor);
+//////                        case Queen -> copyPiece = new Queen(x, y, copyPieceColor);
+//////                        case King -> {
+//////                            copyPiece = new King(x, y, copyPieceColor);
+//////                            if (copyPieceColor.equals(PieceColor.White)) {
+//////                                tempBoard.whiteKing = (King) copyPiece;
+//////                            } else {
+//////                                tempBoard.blackKing = (King) copyPiece;
+//////                            }
+//////                        }
+//////                    }
+//////                    tempBoard.boardTiles[x][y].setPiece(copyPiece);
+////                    tempBoard.boardTiles[x][y].setPiece(chessboard.boardTiles[x][y].getPiece());
+////                    tempBoard.boardTiles[x][y].hasPiece=true;
+////                } else {
+////                    tempBoard.boardTiles[x][y].setPiece(null);
+////                    tempBoard.boardTiles[x][y].hasPiece=false;
+////                }
+////            }
+////        }
+//        tempSelectedPiece=tempBoard.boardTiles[selectedPiece.getX()][selectedPiece.getY()].getPiece();
+//        //tempSelectedPiece.findPossibleMoves(tempBoard);
+//
+//        for (int i=0;i<selectedPiece.possibleMoves.size();i++) {
+//            int testX = selectedPiece.possibleMoves.get(i).getX();
+//            int testY = selectedPiece.possibleMoves.get(i).getY();
+//
+//            constantX = selectedPiece.x;
+//            constantY = selectedPiece.y;
+//            tempBoard.boardTiles[constantX][constantY].setPiece(null);
+//            tempBoard.boardTiles[constantY][constantY].hasPiece = false;
+//
+//            tempBoard.boardTiles[testX][testY].setPiece(tempSelectedPiece);
+//            tempBoard.boardTiles[testX][testY].hasPiece = true;
+//            tempSelectedPiece.setX(testX);
+//            tempSelectedPiece.setY(testY);
+//
+//            if (isWhiteTurn) {
+//                if (tempBoard.whiteKing.isInCheck(tempBoard)) {
+//                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+//                }
+//            } else {
+//                if (tempBoard.blackKing.isInCheck(tempBoard)) {
+//                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+//                }
+//            }
+//
+//            tempBoard.boardTiles[constantX][constantY].setPiece(tempSelectedPiece);
+//            tempBoard.boardTiles[constantY][constantY].hasPiece = true;
+//            tempBoard.boardTiles[testX][testY].setPiece(null);
+//            tempBoard.boardTiles[testX][testY].hasPiece = false;
+//            tempSelectedPiece.setX(constantX);
+//            tempSelectedPiece.setY(constantY);
+//        }
+////        chessGUI.buttons[selectedPiece.getX()][selectedPiece.getY()].setEnabled(true);
+////        chessGUI.disableButtons(selectedPiece);
+//
+//        /*--------------------------------------------------------------------*/
+//        /*--------------------------------------------------------------------*/
+////        int listSize;
+////        ArrayList<Piece> threatPiecesList=new ArrayList<>();
+////        Tile threatPieceTile;
+////        Piece threatPiece;
+////        King king;
+////        if (blackPlayer.isTurn) {
+////            listSize = chessboard.blackKing.threatPieces.size();
+////            king=chessboard.blackKing;
+////            threatPiecesList=chessboard.blackKing.threatPieces;
+////        } else {
+////            listSize = chessboard.whiteKing.threatPieces.size();
+////            king= chessboard.whiteKing;
+////            threatPiecesList=chessboard.whiteKing.threatPieces;
+////        }
+////        for (int k = 0; k < listSize; k++) {
+////            threatPieceTile = chessboard.boardTiles[chessboard.blackKing.threatPieces.get(k).getX()][chessboard.blackKing.threatPieces.get(k).getY()];
+////            threatPiece=chessboard.boardTiles[threatPieceTile.getX()][threatPieceTile.getY()].getPiece();
+////
+////            if (!selectedPiece.possibleMoves.contains(threatPieceTile) &&
+////                    threatPiece.possibleMoves.contains(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY()])) {
+////                System.out.println("Clear all moves condition");
+////                chessGUI.enableButtons();
+////                selectedPiece.possibleMoves.clear();
+//////                break;
+////            } else if (selectedPiece instanceof Rook || selectedPiece instanceof Queen) {
+////                selectedPiece.possibleMoves.clear();
+////                //UP
+////                System.out.println("Selected Piece: X"+selectedPiece.getX()+" Y"+selectedPiece.getY());
+////                System.out.println("Threat Piece: X"+threatPiecesList.get(k).getX()+" Y"+threatPiecesList.get(k).getY());
+////                System.out.println("King Piece: X"+king.getX()+" Y"+king.getY());
+////                if(selectedPiece.getY()< threatPiecesList.get(k).getY() && selectedPiece.getY()> king.getY()){
+////                    System.out.println("UP");
+////                    for(int i= king.getY()+1;i <= threatPiecesList.get(k).getY();i++)
+////                        selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][i]);
+////                    break;
+////                }
+////                //DOWN
+////                if(selectedPiece.getY()> threatPiecesList.get(k).getY() && selectedPiece.getY()< king.getY()){
+////                    System.out.println("DOWN");
+////                    for(int i= threatPiecesList.get(k).getY();i < king.getY();i++)
+////                        selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][i]);
+////                    break;
+////                }
+////                //RIGHT
+////                if(selectedPiece.getX()< threatPiecesList.get(k).getX() && selectedPiece.getX()> king.getX()){
+////                    System.out.println("RIGHT");
+////                    for(int i= king.getX()+1; i<= threatPiecesList.get(k).getX();i++)
+////                        selectedPiece.possibleMoves.add(chessboard.boardTiles[i][selectedPiece.getY()]);
+////                    break;
+////                }
+////                //LEFT
+////                if(selectedPiece.getX()> threatPiecesList.get(k).getX() && selectedPiece.getX()< king.getX()){
+////                    System.out.println("LEFT");
+////                    for(int i= threatPiecesList.get(k).getX();i< king.getX();i++)
+////                        selectedPiece.possibleMoves.add(chessboard.boardTiles[i][selectedPiece.getY()]);
+////                    break;
+////                }
+//
+//        /*--------------------------------------------------------------------*/
+//        /*--------------------------------------------------------------------*/
+//
+////                //UP
+////                for (int i = 1; selectedPiece.getY() + i <= threatPiece.getY(); i++) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY() + i]);
+////                }
+////                //DOWN
+////                for (int i = 1; selectedPiece.getY() - i >= threatPiece.getY(); i++) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX()][selectedPiece.getY() - i]);
+////                }
+////                //RIGHT
+////                for (int i = 1; selectedPiece.getX() + i <= threatPiece.getX(); i++) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX() + i][selectedPiece.getY()]);
+////                }
+////                //LEFT
+////                for (int i = 1; selectedPiece.getX() - i >= threatPiece.getX(); i++) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[selectedPiece.getX() - i][selectedPiece.getY()]);
+////                }
+////                chessGUI.disableButtons(selectedPiece);
+////            }
+////            else if (selectedPiece instanceof Bishop || selectedPiece instanceof Queen) {
+////                //UP RIGHT
+////                int i = selectedPiece.getX() + 1;
+////                int j = selectedPiece.getY() + 1;
+////                while (i <= threatPiece.getX() && j <= threatPiece.getY()) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
+////                    i++;
+////                    j++;
+////                }
+////                //UP LEFT
+////                i = selectedPiece.getX() - 1;
+////                j = selectedPiece.getY() + 1;
+////                while (i >= threatPiece.getX() && j <= threatPiece.getY()) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
+////                    i--;
+////                    j++;
+////                }
+////                //DOWN RIGHT
+////                i = selectedPiece.getX() + 1;
+////                j = selectedPiece.getY() - 1;
+////                while (i <= threatPiece.getX() && j >= threatPiece.getY()) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
+////                    i++;
+////                    j--;
+////                }
+////                //DOWN LEFT
+////                i = selectedPiece.getX() - 1;
+////                j = selectedPiece.getY() - 1;
+////                while (i >= threatPiece.getX() && j >= threatPiece.getY()) {
+////                    selectedPiece.possibleMoves.add(chessboard.boardTiles[i][j]);
+////                    i--;
+////                    j--;
+////                }
+//
+////            } else if (selectedPiece instanceof Knight) {
+////                selectedPiece.possibleMoves.clear();
+////                selectedPiece.possibleMoves.add(threatPieceTile);
+////            }
+////        }
+////        chessGUI.disableButtons(selectedPiece);
+//        return selectedPiece.possibleMoves;
+//    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    public ArrayList<Tile> doNotEndangerKing(Piece selectedPiece,boolean isWhiteTurn) {
+//        Board tempBoard= new Board();
+////        System.out.println(tempSelectedPiece.pieceType);
+//        for(int x=0; x<8;x++){
+//            for(int y=0;y<8;y++) {
+//                if (chessboard.boardTiles[x][y].getPiece() != null) {
+//                    tempBoard.boardTiles[x][y].setPiece(chessboard.boardTiles[x][y].getPiece());
+//                    tempBoard.boardTiles[x][y].hasPiece=true;
+//                } else {
+//                    tempBoard.boardTiles[x][y].setPiece(null);
+//                    tempBoard.boardTiles[x][y].hasPiece=false;
+//                }
+//            }
+//        }
+//    } else {
+//        tempBoard.boardTiles[x][y].setPiece(null);
+//        tempBoard.boardTiles[x][y].hasPiece=false;
+//        }
+//        }
+//        }
+//        Piece tempSelectedPiece=tempBoard.boardTiles[selectedPiece.getX()][selectedPiece.getY()].getPiece();
+//
+//        for (int i=0;i<selectedPiece.possibleMoves.size();i++) {
+//        int testX=selectedPiece.possibleMoves.get(0).getX();
+//        int testY=selectedPiece.possibleMoves.get(0).getY();
+//
+//        constantX= selectedPiece.x;
+//        constantY=selectedPiece.y;
+//        tempBoard.boardTiles[constantX][constantY].setPiece(null);
+//        tempBoard.boardTiles[constantY][constantY].hasPiece=false;
+//
+//        tempBoard.boardTiles[testX][testY].setPiece(movedPiece);
+//        tempBoard.boardTiles[testX][testY].hasPiece=true;
+//        tempSelectedPiece.setX(testX);
+//        tempSelectedPiece.setY(testY);
+//
+//        if(isWhiteTurn) {
+//        if (tempBoard.whiteKing.isInCheck(tempBoard)) {
+//        selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+//        }
+//        } else {
+//        if (tempBoard.blackKing.isInCheck(tempBoard)) {
+//        selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+//        }
+//        }
+//
+//        //Return piece to its place before the next check.
+//        tempBoard.boardTiles[constantX][constantY].setPiece(selectedPiece);
+//        tempBoard.boardTiles[constantX][constantY].hasPiece=true;
+//        tempBoard.boardTiles[testX][testY].setPiece(null);
+//        tempBoard.boardTiles[testX][testY].hasPiece=false;
+//        tempSelectedPiece.setX(constantX);
+//        tempSelectedPiece.setY(constantY);
+//
+//        tempBoard.whiteKing.isInCheck=false;
+//        tempBoard.blackKing.isInCheck=false;
+//        chessboard.whiteKing.isInCheck=false;
+//        chessboard.blackKing.isInCheck=false;
+//
+//
+////            setAndRemovePiece(tempBoard,selectedPiece,testX,testY);
+//////            tempBoard.boardTiles[selectedPiece.getX()][selectedPiece.getY()].setPiece(null);
+//////            tempBoard.boardTiles[selectedPiece.possibleMoves.get(0).getX()][selectedPiece.possibleMoves.get(0).getY()].setPiece(selectedPiece);
+////            if(isWhiteTurn) {
+////                if (tempBoard.whiteKing.isInCheck(tempBoard)) {
+////                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+////                }
+////            } else {
+////                if (tempBoard.blackKing.isInCheck(tempBoard)) {
+////                    selectedPiece.possibleMoves.remove(chessboard.boardTiles[testX][testY]);
+////                }
+////            }
+//        }
